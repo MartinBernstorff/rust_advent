@@ -17,12 +17,10 @@ fn main() {
             cur_cals.push(r.parse::<i32>().unwrap());
         }
     }
+    elf_cals.sort();
 
     // Sort the list by calories
-    let fattest_elves = &elf_cals.sort();
+    let fattest_elves: i32 = elf_cals.iter().rev().take(3).sum();
 
-    let top_4_cals = fattest_elves.take(4).sum();
-
-    println!("{:?}", elf_cals);
-    println!("Top 4 cals {}", top_4_cals);
+    println!("{:?}", fattest_elves);
 }
