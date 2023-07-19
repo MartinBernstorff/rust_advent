@@ -1,7 +1,7 @@
-pub fn load_input_file() -> &'static str {
-    return include_str!("day1.txt");
+pub fn load_input_file() -> color_eyre::Result<String> {
+    let input = std::fs::read_to_string("src/day1.txt")?;
+    Ok(input)
 }
-
 pub fn parse_string_to_elves(input: &str) -> Vec<i32> {
     let mut elf_cals: Vec<i32> = Vec::new();
     let mut cur_cals: Vec<i32> = Vec::new();
@@ -14,7 +14,7 @@ pub fn parse_string_to_elves(input: &str) -> Vec<i32> {
             cur_cals.push(r.parse::<i32>().unwrap());
         }
     }
-    return elf_cals;
+    elf_cals
 }
 
 pub fn get_sum_of_top_n(input: &mut Vec<i32>, top_n: usize) -> i32 {
