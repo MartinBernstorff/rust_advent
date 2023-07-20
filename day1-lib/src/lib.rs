@@ -1,4 +1,5 @@
 use itertools::Itertools;
+use std::cmp::Reverse;
 
 pub fn load_input_file() -> &'static str {
     let input = include_str!("day1.txt");
@@ -21,11 +22,13 @@ pub fn parse_string_to_elves(input: &str) -> Vec<u32> {
         .collect()
 }
 
-pub fn get_sum_of_top_n(input: &mut Vec<i32>, top_n: usize) -> i32 {
-    input.sort();
-
-    // Sort the list by calories
-    return input.iter().rev().take(top_n).sum();
+pub fn get_sum_of_top_n(input: Vec<i32>, top_n: usize) -> i32 {
+    input
+        .into_iter()
+        .map(Reverse)
+        .k_smallest(top_n)
+        .map(|v| v.0)
+        .sum()
 }
 
 #[cfg(test)]
@@ -47,8 +50,8 @@ mod tests {
 
     #[test]
     fn test_get_sum_of_top_n() {
-        let mut input = vec![1, 2, 3];
-        let actual = super::get_sum_of_top_n(&mut input, 2);
+        let input = vec![1, 2, 3];
+        let actual = super::get_sum_of_top_n(input, 2);
         let expected = 5;
         assert_eq!(expected, actual);
     }
