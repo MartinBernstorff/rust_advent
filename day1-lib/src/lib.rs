@@ -1,20 +1,24 @@
-pub fn load_input_file() -> color_eyre::Result<String> {
-    let input = std::fs::read_to_string("src/day1.txt")?;
-    Ok(input)
-}
-pub fn parse_string_to_elves(input: &str) -> Vec<i32> {
-    let mut elf_cals: Vec<i32> = Vec::new();
-    let mut cur_cals: Vec<i32> = Vec::new();
+use itertools::Itertools;
 
-    for r in input.lines() {
-        if r.is_empty() {
-            elf_cals.push(cur_cals.iter().sum());
-            cur_cals.clear();
-        } else {
-            cur_cals.push(r.parse::<i32>().unwrap());
-        }
-    }
-    elf_cals
+pub fn load_input_file() -> &'static str {
+    let input = include_str!("day1.txt");
+    input
+}
+pub fn parse_string_to_elves(input: &str) -> Vec<u32> {
+    // Newlines on Windows are \r\n
+    let lines = input.lines();
+
+    // Remove the None values
+    lines
+        .map(|v| v.parse::<u32>().ok())
+        .batching(|l| {
+            let mut sum = None;
+            while let Some(Some(v)) = l.next() {
+                sum = Some(sum.unwrap_or(0) + v);
+            }
+            sum
+        })
+        .collect()
 }
 
 pub fn get_sum_of_top_n(input: &mut Vec<i32>, top_n: usize) -> i32 {

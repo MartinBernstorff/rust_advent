@@ -5,7 +5,7 @@ mod main_tests {
     #[test]
     fn main() {
         // Load file in day1.txt
-        let input = load_input_file().unwrap();
+        let input = load_input_file();
         let mut parsed_elves = parse_string_to_elves(&input);
         let combined_cals_from_richest_elves = get_sum_of_top_n(&mut parsed_elves, 4);
 
