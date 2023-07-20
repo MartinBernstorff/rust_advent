@@ -3,11 +3,6 @@
     B: Paper,
     C: Scissors
 
-    You:
-    X: Rock
-    Y: Paper
-    Z: Scissors
-
     Points:
         Shape you selected (1: X, 2: Y, 3: Z)
         Outcome of round:
@@ -18,13 +13,11 @@
     Get sum of points if everything goes according to the strategy guide.
 */
 
-use color_eyre::owo_colors::OwoColorize;
-
 pub fn load_input() -> &'static str {
     include_str!("day2.txt")
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Round {
     ours: Move,
     theirs: Move,
@@ -34,7 +27,7 @@ impl Round {
     pub fn points(&self) -> u32 {
         let victory_points = if self.ours == self.theirs {
             3
-        } else if self.ours.wins_against(&self.theirs) {
+        } else if self.ours.wins_against() == self.theirs {
             6
         } else {
             0
@@ -60,12 +53,19 @@ enum Move {
 }
 
 impl Move {
-    fn wins_against(&self, other: &Move) -> bool {
-        match (self, other) {
-            (Move::Rock, Move::Scissors) => true,
-            (Move::Paper, Move::Rock) => true,
-            (Move::Scissors, Move::Paper) => true,
-            _ => false,
+    fn wins_against(&self) -> Self {
+        match self {
+            Move::Rock => Move::Scissors,
+            Move::Paper => Move::Rock,
+            Move::Scissors => Move::Paper,
+        }
+    }
+
+    fn loses_against(&self) -> Self {
+        match self {
+            Move::Rock => Move::Paper,
+            Move::Paper => Move::Scissors,
+            Move::Scissors => Move::Rock,
         }
     }
 }
@@ -75,9 +75,46 @@ impl TryFrom<char> for Move {
 
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
-            'A' | 'X' => Ok(Move::Rock),
-            'B' | 'Y' => Ok(Move::Paper),
-            'C' | 'Z' => Ok(Move::Scissors),
+            'A' => Ok(Move::Rock),
+            'B' => Ok(Move::Paper),
+            'C' => Ok(Move::Scissors),
+            _ => Err(color_eyre::eyre::eyre!("Invalid move")),
+        }
+    }
+}
+enum DesiredResult {
+    Win,
+    Draw,
+    Loss,
+}
+
+impl DesiredResult {
+    fn get_round(&self, other_move: Move) -> Round {
+        match self {
+            DesiredResult::Win => Round {
+                ours: other_move.loses_against(),
+                theirs: other_move,
+            },
+            DesiredResult::Draw => Round {
+                ours: other_move,
+                theirs: other_move,
+            },
+            DesiredResult::Loss => Round {
+                ours: other_move.wins_against(),
+                theirs: other_move,
+            },
+        }
+    }
+}
+
+impl TryFrom<char> for DesiredResult {
+    type Error = color_eyre::Report;
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            'X' => Ok(DesiredResult::Loss),
+            'Y' => Ok(DesiredResult::Draw),
+            'Z' => Ok(DesiredResult::Win),
             _ => Err(color_eyre::eyre::eyre!("Invalid move")),
         }
     }
@@ -86,20 +123,19 @@ impl TryFrom<char> for Move {
 pub fn parse_input_to_moves(input: &str) -> Vec<Round> {
     // Load input
     let char_pairs = str_to_char_pairs(input);
-    char_pairs_to_moves(char_pairs)
+    char_pairs_to_round(char_pairs)
 }
 
-fn char_pairs_to_moves(char_pairs: Vec<(&str, &str)>) -> Vec<Round> {
+fn char_pairs_to_round(char_pairs: Vec<(&str, &str)>) -> Vec<Round> {
     char_pairs
         .iter()
         .map(|(first, second)| {
             let their_char = first.chars().next().unwrap();
-            let our_char = second.chars().next().unwrap();
+            let outcome_char = second.chars().next().unwrap();
 
-            Round {
-                theirs: Move::try_from(their_char).unwrap(),
-                ours: Move::try_from(our_char).unwrap(),
-            }
+            let desired_result = DesiredResult::try_from(outcome_char).unwrap();
+
+            desired_result.get_round(Move::try_from(their_char).unwrap())
         })
         .collect::<Vec<_>>()
 }
@@ -111,7 +147,7 @@ fn str_to_char_pairs(input: &str) -> Vec<(&str, &str)> {
             if let Some((first, second)) = line.split_once(' ') {
                 (first, second)
             } else {
-                panic!("Invalid input")
+                panic!("Invalid input");
             }
         })
         .collect::<Vec<_>>()
@@ -119,7 +155,9 @@ fn str_to_char_pairs(input: &str) -> Vec<(&str, &str)> {
 
 pub fn lib_main(input: &str) {
     let moves = parse_input_to_moves(input);
-    let total_points: u32 = moves.iter().map(|round| round.points()).sum();
+    let round_points = moves.iter().map(|round| round.points()).collect::<Vec<_>>();
+
+    let total_points: u32 = round_points.iter().sum();
 
     println!("{:?}", total_points)
 }
