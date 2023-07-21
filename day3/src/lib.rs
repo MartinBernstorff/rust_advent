@@ -105,13 +105,13 @@ mod tests {
 
     #[test]
     fn should_get_intersecting_chars() {
-        let str_one = "ABCE";
-        let str_two = "CDE";
-        let str_three = "EFGC";
+        let str_one = "ABCDE";
+        let str_two = "DE";
+        let str_three = "DEFG";
 
         let intersect = get_shared_chars(vec![str_one, str_two, str_three]);
 
-        assert_eq!(intersect, vec!['C', 'E']);
+        assert_eq!(intersect, vec!['D', 'E']);
     }
 
     #[test]
