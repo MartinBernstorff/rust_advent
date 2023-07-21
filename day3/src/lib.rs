@@ -1,28 +1,57 @@
 pub fn lib_main(input: &'static str) {
-    let total_priorities: u32 = input
-        .lines()
-        .map(split_str_to_compartments)
-        .filter_map(|rucksack| get_shared_char(rucksack.compartment_one, rucksack.compartment_two))
-        .map(get_char_priority)
-        .sum();
+    let groups = parse_input_to_groups(input);
 
-    println!("{}", total_priorities);
+    let mut priorities = Vec::new();
+
+    for group in groups {
+        let shared_chars = get_shared_chars(group);
+
+        if shared_chars.len() != 1 {
+            panic!("Expected exactly one shared char");
+        }
+
+        priorities.push(get_char_priority(shared_chars[0]));
+    }
+
+    println!("{}", priorities.iter().sum::<u32>());
 }
 
 pub fn load_input() -> &'static str {
     include_str!("day3.txt")
 }
 
-pub fn get_shared_char<'a>(input_1: &'a str, input_2: &'a str) -> Option<char> {
-    for char1 in input_1.chars() {
-        for char2 in input_2.chars() {
-            if char1 == char2 {
-                return Some(char1);
-            }
+pub fn parse_input_to_groups(input: &str) -> Vec<Vec<&str>> {
+    // Split input into groups of 3 lines
+    let mut groups = Vec::new();
+    let mut lines = input.lines();
+
+    loop {
+        let group = lines.by_ref().take(3).collect::<Vec<_>>();
+
+        if group.len() == 3 {
+            groups.push(group);
+        } else {
+            return groups;
         }
     }
+}
 
-    None
+pub fn get_shared_chars(input_strs: Vec<&str>) -> Vec<char> {
+    // Get intersection of chars in all strings
+    use std::collections::HashSet;
+
+    let sets = input_strs
+        .iter()
+        .map(|str| str.chars().collect::<HashSet<_>>())
+        .collect::<Vec<_>>();
+
+    let mut intersection = sets[0].clone();
+
+    for set in sets.iter().skip(1) {
+        intersection = intersection.intersection(set).cloned().collect();
+    }
+
+    intersection.iter().cloned().collect::<Vec<_>>()
 }
 
 pub fn get_char_priority(char: char) -> u32 {
@@ -76,14 +105,13 @@ mod tests {
 
     #[test]
     fn should_get_intersecting_chars() {
-        let input = Rucksack {
-            compartment_one: "AA",
-            compartment_two: "BBAA",
-        };
+        let str_one = "ABCE";
+        let str_two = "CDE";
+        let str_three = "EFGC";
 
-        let intersect = get_shared_char(input.compartment_one, input.compartment_two);
+        let intersect = get_shared_chars(vec![str_one, str_two, str_three]);
 
-        assert_eq!(intersect, Some('A'));
+        assert_eq!(intersect, vec!['C', 'E']);
     }
 
     #[test]
@@ -108,5 +136,11 @@ mod tests {
             input.lines().take(1).collect::<Vec<_>>()[0],
             "FqdWDFppHWhmwwzdjvjTRTznjdMv"
         );
+    }
+
+    #[test]
+    fn test_parse_input_into_groups() {
+        let groups = parse_input_to_groups("1\n2\n3\n4");
+        assert_eq!(groups, vec![vec!["1", "2", "3"]]);
     }
 }
