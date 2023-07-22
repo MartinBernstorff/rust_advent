@@ -6,8 +6,8 @@ pub struct ZoneAssignment {
     max: u32,
 }
 impl ZoneAssignment {
-    fn is_contained_in(&self, other: Self) -> bool {
-        self.min >= other.min && self.max <= other.max
+    fn has_overlap(&self, other: Self) -> bool {
+        !(self.min > other.max || self.max < other.min)
     }
 }
 
@@ -46,14 +46,14 @@ mod tests {
         let input = include_str!("input.txt");
         let elf_pairs = input.lines().map(parse_elf_pairs).collect::<Vec<_>>();
 
-        let mut contained_pairs = 0;
+        let mut has_overlap = 0;
         for pair in elf_pairs.iter() {
-            if pair[0].is_contained_in(pair[1]) || pair[1].is_contained_in(pair[0]) {
-                contained_pairs += 1;
+            if pair[0].has_overlap(pair[1]) || pair[1].has_overlap(pair[0]) {
+                has_overlap += 1;
             }
         }
 
-        dbg!(contained_pairs);
+        dbg!(has_overlap);
     }
 
     #[test]
@@ -71,13 +71,13 @@ mod tests {
     }
 
     #[test]
-    fn test_containment_algo() {
+    fn test_no_overlap() {
         let assignment = ZoneAssignment { min: 1, max: 3 };
         let other = ZoneAssignment { min: 0, max: 4 };
-        assert!(assignment.is_contained_in(other));
+        assert!(assignment.has_overlap(other));
 
-        let other_not_contained = ZoneAssignment { min: 0, max: 2 };
-        assert!(!assignment.is_contained_in(other_not_contained));
+        let other_no_overlap = ZoneAssignment { min: 4, max: 5 };
+        assert!(!assignment.has_overlap(other_no_overlap));
     }
 
     #[test]
