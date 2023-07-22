@@ -1,13 +1,12 @@
 use color_eyre::eyre::{eyre, Result};
 use itertools::Itertools;
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ZoneAssignment {
-    min: u32,
-    max: u32,
+    range: std::ops::RangeInclusive<u32>,
 }
 impl ZoneAssignment {
     fn has_overlap(&self, other: Self) -> bool {
-        !(self.min > other.max || self.max < other.min)
+        !(self.range.start() > other.range.end() || self.range.end() < other.range.start())
     }
 }
 
@@ -27,7 +26,7 @@ impl TryFrom<&str> for ZoneAssignment {
             _ => return Err(eyre!("Invalid input")),
         };
 
-        Ok(ZoneAssignment { min, max })
+        Ok(ZoneAssignment { range: min..=max })
     }
 }
 
@@ -48,7 +47,9 @@ mod tests {
 
         let mut has_overlap = 0;
         for pair in elf_pairs.iter() {
-            if pair[0].has_overlap(pair[1]) || pair[1].has_overlap(pair[0]) {
+            let first = &pair[0];
+            let second = &pair[1];
+            if first.has_overlap(second.clone()) {
                 has_overlap += 1;
             }
         }
@@ -64,26 +65,26 @@ mod tests {
         assert_eq!(
             result,
             vec![
-                ZoneAssignment { min: 1, max: 3 },
-                ZoneAssignment { min: 5, max: 7 }
+                ZoneAssignment { range: 1..=3 },
+                ZoneAssignment { range: 5..=7 }
             ]
         );
     }
 
     #[test]
     fn test_no_overlap() {
-        let assignment = ZoneAssignment { min: 1, max: 3 };
-        let other = ZoneAssignment { min: 0, max: 4 };
+        let assignment = ZoneAssignment { range: 1..=3 };
+        let other = ZoneAssignment { range: 0..=4 };
         assert!(assignment.has_overlap(other));
 
-        let other_no_overlap = ZoneAssignment { min: 4, max: 5 };
+        let other_no_overlap = ZoneAssignment { range: 4..=5 };
         assert!(!assignment.has_overlap(other_no_overlap));
     }
 
     #[test]
     fn test_assignment_parsing() {
         let assignment = ZoneAssignment::try_from("1-3").unwrap();
-        assert_eq!(assignment.min, 1);
-        assert_eq!(assignment.max, 3);
+        assert_eq!(assignment.range.start(), &1);
+        assert_eq!(assignment.range.end(), &3);
     }
 }
