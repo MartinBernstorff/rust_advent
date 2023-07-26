@@ -77,6 +77,7 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "itertools",
+ "rust-analyzer",
 ]
 
 [[package]]
@@ -169,6 +170,12 @@ name = "pin-project-lite"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c40d25201921e5ff0c862a505c6557ea88568a4e3ace775ab55e93f2f4f9d57"
+
+[[package]]
+name = "rust-analyzer"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11707871ffa56ce568d4f15dd34c2f891a2aa5e4b3435b99b8f99938492525c3"
 
 [[package]]
 name = "rustc-demangle"

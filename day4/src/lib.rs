@@ -37,6 +37,10 @@ pub fn parse_elf_pairs(input: &str) -> Vec<ZoneAssignment> {
         .collect::<Vec<ZoneAssignment>>()
 }
 
+fn main() {
+    println!("Testing!");
+}
+
 mod tests {
     use super::*;
 
