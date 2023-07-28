@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::collections::HashSet;
 
 pub fn add(left: usize, right: usize) -> usize {
@@ -18,7 +19,7 @@ fn get_end_index_of_first_unique_chunk(input: &str, window_size: u32) -> Option<
     input
         .as_bytes()
         .windows(window_usize)
-        .position(|window| window.iter().collect::<HashSet<_>>().len() == window_usize)
+        .position(|window| window.iter().unique().count() == window_usize)
         .map(|pos| pos + window_usize)
 }
 
