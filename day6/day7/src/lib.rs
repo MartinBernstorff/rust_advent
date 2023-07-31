@@ -164,18 +164,27 @@ fn construct_tree() -> color_eyre::Result<Tree<TreeNode>> {
 fn main() {
     let tree = construct_tree().unwrap();
 
-    let sum = tree
+    let total_size = 70000000;
+    let needed_size = 30000000;
+    let current_useage =
+        subtree_size(&tree, tree.get(tree.root_node_id().unwrap()).unwrap()).unwrap();
+
+    let free_size = total_size - current_useage;
+
+    let size_to_free = needed_size - free_size;
+
+    let smallest_size_to_remove = tree
         .traverse_pre_order(tree.root_node_id().unwrap())
         .unwrap()
-        .filter(|n| !n.children().is_empty())
-        .map(|n| subtree_size(&tree, n).unwrap())
-        .filter(|&s| s <= 100_000)
+        .filter(|n| !n.children().is_empty()) // Keep only directories
+        .map(|n| subtree_size(&tree, &n).unwrap())
+        .filter(|&n| n > size_to_free)
         .inspect(|s| {
             dbg!(s);
         })
-        .sum::<u64>();
+        .min();
 
-    dbg!(sum);
+    dbg!(smallest_size_to_remove);
 }
 
 #[cfg(test)]
