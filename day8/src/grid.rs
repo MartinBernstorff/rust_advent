@@ -19,7 +19,7 @@ pub struct Grid<T> {
 
 impl Debug for Grid<usize> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut row_strings: Vec<String> = vec![];
+        let mut row_strings: Vec<String> = vec![String::new()];
 
         for row in 0..self.height {
             let start_index = row * self.width;
