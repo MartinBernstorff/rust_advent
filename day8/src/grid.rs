@@ -48,7 +48,7 @@ where
         }
     }
 
-    fn in_bounds(&self, coord: GridCoord) -> bool {
+    pub fn in_bounds(&self, coord: GridCoord) -> bool {
         coord.x < self.width && coord.y < self.height
     }
 
