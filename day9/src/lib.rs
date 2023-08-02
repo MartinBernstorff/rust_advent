@@ -6,11 +6,12 @@ pub mod grid;
 pub mod instruction_parsing;
 
 fn main(instructions: Vec<Instruction>) -> usize {
-    let mut head_position = GridPos { x: 0, y: 0 };
-    let mut tail_position = GridPos { x: 0, y: 0 };
-    let mut tail_positions_visited = vec![tail_position];
+    let mut knots = [GridPos { x: 0, y: 0 }; 10];
+    let mut tail_positions_visited = vec![knots[0].clone()];
 
     for i in instructions {
+        let mut head_position = knots[0];
+
         match i {
             Instruction::Up => {
                 head_position.y += 1;
@@ -25,43 +26,23 @@ fn main(instructions: Vec<Instruction>) -> usize {
                 head_position.x += 1;
             }
         }
+        knots[0] = head_position;
 
-        let head_tail_delta = head_position - tail_position;
+        // Process each knot after the head
+        for i in 1..knots.len() {
+            // 1 to skip the head
+            let diff = knots[i - 1] - knots[i];
+            let (dx, dy) = update_position(diff);
 
-        // If the head is moving away from the tail, then the tail moves in the same direction
-        // If right, move right
-        let (dx, dy) = match (head_tail_delta.x, head_tail_delta.y) {
-            // overlapping
-            (0, 0) => (0, 0),
-            // touching up/left/down/right
-            (0, 1) | (1, 0) | (0, -1) | (-1, 0) => (0, 0),
-            // touching diagonally
-            (1, 1) | (1, -1) | (-1, 1) | (-1, -1) => (0, 0),
-            // need to move up/left/down/right
-            (0, 2) => (0, 1),
-            (0, -2) => (0, -1),
-            (2, 0) => (1, 0),
-            (-2, 0) => (-1, 0),
-            // need to move to the right diagonally
-            (2, 1) => (1, 1),
-            (2, -1) => (1, -1),
-            // need to move to the left diagonally
-            (-2, 1) => (-1, 1),
-            (-2, -1) => (-1, -1),
-            // need to move up/down diagonally
-            (1, 2) => (1, 1),
-            (-1, 2) => (-1, 1),
-            (1, -2) => (1, -1),
-            (-1, -2) => (-1, -1),
-            _ => panic!("unhandled case: tail - head = {head_tail_delta:?}"),
-        };
+            knots[i] = GridPos {
+                x: knots[i].x + dx,
+                y: knots[i].y + dy,
+            };
 
-        tail_position = GridPos {
-            x: tail_position.x + dx,
-            y: tail_position.y + dy,
-        };
-
-        tail_positions_visited.push(tail_position);
+            if i == knots.len() - 1 {
+                tail_positions_visited.push(knots[i]);
+            }
+        }
     }
 
     // Get unique positions visited by the tail with a HashSet
@@ -72,6 +53,40 @@ fn main(instructions: Vec<Instruction>) -> usize {
         unique_tail_positions.len()
     );
     unique_tail_positions.len()
+}
+
+fn update_position(position_delta: GridPos) -> (i32, i32) {
+    let (dx, dy) = match (position_delta.x, position_delta.y) {
+        // overlapping
+        (0, 0) => (0, 0),
+        // touching up/left/down/right
+        (0, 1) | (1, 0) | (0, -1) | (-1, 0) => (0, 0),
+        // touching diagonally
+        (1, 1) | (1, -1) | (-1, 1) | (-1, -1) => (0, 0),
+        // need to move up/left/down/right
+        (0, 2) => (0, 1),
+        (0, -2) => (0, -1),
+        (2, 0) => (1, 0),
+        (-2, 0) => (-1, 0),
+        // need to move to the right diagonally
+        (2, 1) => (1, 1),
+        (2, -1) => (1, -1),
+        // need to move to the left diagonally
+        (-2, 1) => (-1, 1),
+        (-2, -1) => (-1, -1),
+        // As before, move diagonally
+        (1, 2) => (1, 1),
+        (-1, 2) => (-1, 1),
+        (1, -2) => (1, -1),
+        (-1, -2) => (-1, -1),
+        // Big diagonal moves, since the prior knot can move diagonally
+        (-2, -2) => (-1, -1),
+        (-2, 2) => (-1, 1),
+        (2, -2) => (1, -1),
+        (2, 2) => (1, 1),
+        _ => panic!("{:?}", position_delta),
+    };
+    (dx, dy)
 }
 #[cfg(test)]
 mod tests {
