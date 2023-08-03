@@ -49,7 +49,7 @@ impl InstructionHistory {
     }
 }
 
-pub fn main(input: &str) -> Vec<i32> {
+pub fn main(input: &str) {
     let instructions = input
         .lines()
         .map(|i| Instruction::parse(i))
@@ -59,20 +59,32 @@ pub fn main(input: &str) -> Vec<i32> {
         instructions: instructions.clone(),
     };
 
-    let cycle_counts = [20, 60, 100, 140, 180, 220];
-    let counts_during_cycles = cycle_counts.map(|c| history.register_value_during_cycle(&c));
+    let mut pixels = vec![];
 
-    let mut signal_strengths = vec![];
+    for cycle_count in 1..=240 {
+        let register_value = history.register_value_during_cycle(&cycle_count);
+        let crt_position = (cycle_count - 1) % 40;
+        let sprite_interval = crt_position - 2..crt_position + 2;
 
-    for i in 0..cycle_counts.len() {
-        let cycle_count = cycle_counts[i];
-        let register_value = counts_during_cycles[i];
-        let signal_strength = register_value * cycle_count;
-        signal_strengths.push(signal_strength);
+        println!("Register value: {:?}", register_value);
+        println!("CRT position: {:?}", crt_position);
+        println!("Sprite interval: {:?}", sprite_interval);
+        println!("\n");
 
-        println!("{} {}", cycle_count, signal_strength)
+        if sprite_interval.contains(&register_value) {
+            pixels.push("#");
+        } else {
+            pixels.push(".");
+        }
+
+        if cycle_count.clone() % 40 == 0 {
+            pixels.push("\n");
+        }
     }
-    signal_strengths
+
+    for pixel in pixels {
+        print!("{}", pixel);
+    }
 }
 
 mod tests {
@@ -81,16 +93,13 @@ mod tests {
     #[test]
     fn test_main() {
         let input = include_str!("input.txt");
-        let signal_strenghts = main(input);
-
-        let sum_of_signal_strengths = signal_strenghts.iter().sum::<i32>();
-        println!("sum_of_signal_strengths: {}", sum_of_signal_strengths);
+        main(input);
     }
 
     #[test]
-    fn test_small_sample() {
-        let signal_strengths = main(include_str!("small_sample.txt"));
-        assert_eq!(signal_strengths, vec![420, 1140, 1800, 2940, 2880, 3960]);
+    fn test_smaller_sample() {
+        let input = include_str!("small_sample.txt");
+        main(input);
     }
 
     #[test]
